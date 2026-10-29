@@ -9,7 +9,7 @@ Code and parts lists for Eng. Toqa Hamdy's groups (A3, A4, B3, B4, L3, L4, F1, F
 | Team | Project | Board | Code |
 | --- | --- | --- | --- |
 | 1 | [Anti-Theft Flooring System](#team-1-anti-theft-flooring-system) | Arduino Uno | [01_AntiTheft_Flooring.ino](01_AntiTheft_Flooring.ino) |
-| 2 | [Mini Racing Game](#team-2-mini-racing-game) | Arduino Uno (or Nano) | [02_Mini_Racing_Game.ino](02_Mini_Racing_Game.ino) |
+| 2 | [Dino Jump Game](#team-2-dino-jump-game) | ESP32 | [02_Dino_Jump_Game.ino](02_Dino_Jump_Game.ino) |
 | 3 | [Mini Solar Power Tracking System](#team-3-mini-solar-power-tracking-system) | Arduino Uno | [03_Mini_Solar_Tracker.ino](03_Mini_Solar_Tracker.ino) |
 | 4 | [Ultrasonic Radar Visualization System](#team-4-ultrasonic-radar-visualization-system) | Arduino Uno | [04_Ultrasonic_Radar.ino](04_Ultrasonic_Radar.ino) |
 | 5 | [Reaction Speed Game](#team-5-reaction-speed-game) | Arduino Uno | [05_Reaction_Speed_Game.ino](05_Reaction_Speed_Game.ino) |
@@ -64,40 +64,42 @@ Code and parts lists for Eng. Toqa Hamdy's groups (A3, A4, B3, B4, L3, L4, F1, F
 
 ---
 
-## Team 2: Mini Racing Game
+## Team 2: Dino Jump Game
 
-**Board:** Arduino Uno (or Nano). The game is light for an Uno, and the OLED and buttons plug straight in. A Nano does the same job in a smaller handheld case.
+**Board:** ESP32 DevKit. It runs the game fast and smooth, and it keeps the best score in its own memory, so the record stays after the power is off.
 
-**Other option:** ESP32 only if you want a bigger color screen later; not needed for this game.
+**Other option:** Arduino Uno or Nano can run the same game (pins D2 button, D8 buzzer, OLED on A4 / A5), but the best score is lost when it is switched off.
 
-**Code:** [02_Mini_Racing_Game.ino](02_Mini_Racing_Game.ino)
+**Code:** [02_Dino_Jump_Game.ino](02_Dino_Jump_Game.ino)
 
-**Libraries:** Adafruit SSD1306, Adafruit GFX Library
+**Libraries:** Adafruit SSD1306, Adafruit GFX Library. Board: install **esp32 by Espressif Systems** from Tools > Board > Boards Manager, then choose **ESP32 Dev Module**.
 
 ### Components to buy
 
 | Part | Qty | Note |
 | --- | --- | --- |
-| Arduino Uno + USB cable | 1 | or Arduino Nano |
+| ESP32 DevKit (30 or 38 pins) + USB cable | 1 | the cable must carry data, not only charge |
 | OLED 0.96 inch 128x64 I2C (SSD1306) | 1 | address 0x3C |
-| Push button | 2 | left and right |
+| Push button (big arcade button is best) | 1 | the jump button |
 | Passive buzzer | 1 |  |
-| Breadboard + jumper wires | 1 set |  |
-| Game case (cardboard or 3D print) | 1 | like a small arcade |
+| Breadboard + jumper wires | 1 set | a wide breadboard, or two side by side, for the ESP32 |
+| Game case (cardboard or 3D print) | 1 | like a small handheld game |
 
 ### Connections
 
 | From | To |
 | --- | --- |
-| Left / Right button | D2 / D3 (other legs to GND) |
-| Buzzer + | D8 |
-| OLED SDA / SCL / VCC / GND | A4 / A5 / 5V / GND |
+| Jump button | GPIO 4 and GND |
+| Buzzer + / - | GPIO 25 / GND |
+| OLED SDA / SCL | GPIO 21 / GPIO 22 |
+| OLED VCC / GND | 3V3 / GND |
 
 ### Tests, in this order
 
-1. Upload the library example ssd1306_128x64_i2c: shapes appear on the OLED.
-2. Each button moves the car one lane with a beep.
-3. A crash shows GAME OVER; a button starts a new game.
+1. Upload the library example ssd1306_128x64_i2c (with the ESP32 board chosen): shapes appear on the OLED.
+2. Upload the game: the dinosaur stands on the ground with "HI 0" at the top.
+3. Press the button: the dinosaur jumps with a beep.
+4. Hit a cactus: GAME OVER; the button starts a new game, and HI keeps the best score after unplugging.
 
 ---
 
