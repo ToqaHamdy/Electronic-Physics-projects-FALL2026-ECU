@@ -12,7 +12,7 @@ Code and parts lists for Eng. Toqa Hamdy's groups (A3, A4, B3, B4, L3, L4, F1, F
 | 2 | [Dino Jump Game](#team-2-dino-jump-game) | ESP32 | [02_Dino_Jump_Game.ino](02_Dino_Jump_Game.ino) |
 | 3 | [Mini Solar Power Tracking System](#team-3-mini-solar-power-tracking-system) | Arduino Uno | [03_Mini_Solar_Tracker.ino](03_Mini_Solar_Tracker.ino) |
 | 4 | [Ultrasonic Radar Visualization System](#team-4-ultrasonic-radar-visualization-system) | Arduino Uno | [04_Ultrasonic_Radar.ino](04_Ultrasonic_Radar.ino) |
-| 5 | [Reaction Speed Game](#team-5-reaction-speed-game) | Arduino Uno | [05_Reaction_Speed_Game.ino](05_Reaction_Speed_Game.ino) |
+| 5 | [Reaction Speed Game](#team-5-reaction-speed-game) | ESP32 | [05_Reaction_Speed_Game.ino](05_Reaction_Speed_Game.ino) |
 | 6 | [Solar Powered Phone Charger](#team-6-solar-powered-phone-charger) | Arduino Nano | [06_Solar_Phone_Charger.ino](06_Solar_Phone_Charger.ino) |
 | 7 | [Digital Temperature Monitoring Station](#team-7-digital-temperature-monitoring-station) | Arduino Uno | [07_Digital_Temperature_Station.ino](07_Digital_Temperature_Station.ino) |
 | 8 | [Automatic Water Tank Level Controller](#team-8-automatic-water-tank-level-controller) | Arduino Uno | [08_Water_Tank_Controller.ino](08_Water_Tank_Controller.ino) |
@@ -184,41 +184,61 @@ Code and parts lists for Eng. Toqa Hamdy's groups (A3, A4, B3, B4, L3, L4, F1, F
 
 ## Team 5: Reaction Speed Game
 
-**Board:** Arduino Uno. It measures time to the millisecond with simple buttons and LEDs. The Uno is the easiest and cheapest choice.
+An advanced version: a reaction-time **lab**, not only a game. It times every press to the microsecond with interrupts and has 4 modes:
 
-**Other option:** Arduino Nano for a smaller box; ESP32 is not needed.
+| Mode | Players | What it measures |
+| --- | --- | --- |
+| 1 DUEL | 2 | First to press after GO wins; best of 5 rounds, false starts give the round away |
+| 2 LIGHT | 1 | Reaction to light only (5 rounds) |
+| 3 SOUND | 1 | Reaction to sound only (5 rounds); compare with LIGHT: people react faster to sound |
+| 4 CHOICE | 1 | RED light = left button, BLUE light = right button; choosing takes longer than reacting (Hick's law), wrong presses are counted |
+
+After 5 rounds the screen shows the **average**, the **best**, the **spread** (standard deviation) and the physics of your time: how far a falling ruler drops before you catch it, **d = ½ g t²**, and how far a car at 60 km/h moves before you react, **d = v t**. The best average of each mode stays in the ESP32 memory, and every result appears live on a phone: join the Wi-Fi **Reaction-Lab** (password **physics2026**) and open **192.168.4.1**.
+
+**Board:** ESP32 DevKit. Interrupts time the buttons to the microsecond, it keeps the records after power off, and its own Wi-Fi shows the results page with no router.
+
+**Other option:** none for this version; an Uno has no Wi-Fi and not enough memory for the page.
 
 **Code:** [05_Reaction_Speed_Game.ino](05_Reaction_Speed_Game.ino)
 
-**Libraries:** LiquidCrystal I2C
+**Libraries:** Adafruit SSD1306, Adafruit GFX Library. Board: install **esp32 by Espressif Systems** from Tools > Board > Boards Manager, then choose **ESP32 Dev Module**.
 
 ### Components to buy
 
 | Part | Qty | Note |
 | --- | --- | --- |
-| Arduino Uno + USB cable | 1 |  |
-| Push button (big arcade type) | 3 | Player 1, Player 2, START |
-| LED green, red, blue | 1 each | GO, P1, P2 |
-| Resistor 220 Ω | 3 |  |
+| ESP32 DevKit (30 or 38 pins) + USB cable | 1 | the cable must carry data, not only charge |
+| OLED 0.96 inch 128x64 I2C (SSD1306) | 1 | address 0x3C |
+| Big arcade push button | 2 | Player 1 / left and Player 2 / right |
+| Small push button | 2 | START and MODE |
+| RGB LED, common cathode | 1 | red, green and blue signals |
+| Resistor 220 Ω | 3 | one per LED color |
 | Passive buzzer | 1 |  |
-| LCD 16x2 with I2C module | 1 | address 0x27 (or 0x3F) |
-| Breadboard + jumper wires + a box | 1 set |  |
+| Breadboard + jumper wires + a box | 1 set | a wide breadboard, or two side by side, for the ESP32 |
 
 ### Connections
 
 | From | To |
 | --- | --- |
-| Player 1 / Player 2 / START buttons | D2 / D3 / D4 (other legs to GND) |
-| Buzzer + | D8 |
-| GO / P1 / P2 LEDs | D9 / D10 / D11 (through 220 Ω) |
-| LCD SDA / SCL / VCC / GND | A4 / A5 / 5V / GND |
+| Player 1 (left) / Player 2 (right) buttons | GPIO 32 / GPIO 33 (other legs to GND) |
+| START / MODE buttons | GPIO 27 / GPIO 26 (other legs to GND) |
+| RGB LED red / green / blue | GPIO 16 / 17 / 19 (through 220 Ω), long leg to GND |
+| Buzzer + / - | GPIO 18 / GND |
+| OLED SDA / SCL | GPIO 21 / GPIO 22 |
+| OLED VCC / GND | 3V3 / GND |
 
 ### Tests, in this order
 
-1. LCD shows "Reaction Game / Press START".
-2. After START and the wait, the green LED and a beep.
-3. Each player button lights its LED and shows a time of about 150-400 ms.
-4. A press during "Get ready" gives the round to the other player.
+1. The OLED shows "DUEL" and "MODE: next mode"; MODE goes through DUEL, LIGHT, SOUND, CHOICE with a click.
+2. LIGHT mode: after START and the wait, the LED turns green (no beep) and the screen shows your time, about 150-350 ms, and the ruler drop.
+3. SOUND mode: only a beep, no light. CHOICE mode: the LED is red or blue; the wrong button shows WRONG.
+4. Press before the signal: TOO SOON (or FOUL! in DUEL, and the other player gets the round).
+5. After 5 rounds: average, best, spread, ruler and car distances; a better average says NEW RECORD and is still there after unplugging.
+6. On a phone, join Reaction-Lab and open 192.168.4.1: every round appears in the list within 2 seconds.
+
+### Ideas for the report
+
+Measure the class in LIGHT, SOUND and CHOICE, and compare the averages. Is sound faster than light? How much longer does a choice take? Is the spread smaller after practice? Use d = ½ g t² to check the result with a real 30 cm ruler drop test.
 
 ---
 
